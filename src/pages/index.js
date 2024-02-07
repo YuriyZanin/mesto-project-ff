@@ -1,5 +1,5 @@
 import "../pages/index.css"; // добавьте импорт главного файла стилей
-import { initialCards } from "./cards.js";
+import { initialCards } from "../components/cards.js";
 import { createCard, deleteCard, likeCard } from "../components/card.js";
 import {
   openModal,
@@ -26,23 +26,30 @@ const newCardForm = document.forms["new-place"];
 const placeInput = newCardForm["place-name"];
 const linkInput = newCardForm.link;
 const imageModal = document.querySelector(".popup_type_image");
-const image = imageModal.querySelector(".popup__image");
-const caption = imageModal.querySelector(".popup__caption");
+const popupImage = imageModal.querySelector(".popup__image");
+const popupImageCaption = imageModal.querySelector(".popup__caption");
+const createCardCallbacks = {
+  deleteFunction: deleteCard,
+  likeFunction: likeCard,
+  openImageFunction: openPopupImage,
+};
 
 // @todo: Вывести карточки на страницу
 initialCards.forEach((item) => {
-  list.append(
-    createCard(cardTmp, item.name, item.link, deleteCard, likeCard, openImage)
-  );
+  const cardData = {};
+  cardData.template = cardTmp;
+  cardData.name = item.name;
+  cardData.link = item.link;
+  list.append(createCard(cardData, createCardCallbacks));
 });
 
 const closeButtons = document.querySelectorAll(".popup__close");
 const modals = document.querySelectorAll(".popup");
 
-function openImage(event) {
-  image.src = event.target.src;
-  image.alt = event.target.alt;
-  caption.textContent = event.target.alt;
+function openPopupImage(name, link) {
+  popupImage.src = link;
+  popupImage.alt = name;
+  popupImageCaption.textContent = name;
   openModal(imageModal);
 }
 
@@ -52,7 +59,8 @@ function editProfile(event) {
   openModal(editProfileModal);
 }
 
-function addNewCard(event) {
+function openModalAddNewCard(event) {
+  newCardForm.reset();
   openModal(newCardModal);
 }
 
@@ -65,22 +73,17 @@ function handleEditProfileFormSubmit(event) {
 
 function handleAddCardFormSubmit(event) {
   event.preventDefault();
-  list.prepend(
-    createCard(
-      cardTmp,
-      placeInput.value,
-      linkInput.value,
-      deleteCard,
-      likeCard,
-      openImage
-    )
-  );
-  closeModalByButton(event);
+  const cardData = {};
+  cardData.template = cardTmp;
+  cardData.name = placeInput.value;
+  cardData.link = linkInput.value;
+  list.prepend(createCard(cardData, createCardCallbacks));
+  closeModal(newCardModal);
 }
 
 // listeners
 editProfileButton.addEventListener("click", editProfile);
-newCardButton.addEventListener("click", addNewCard);
+newCardButton.addEventListener("click", openModalAddNewCard);
 editProfileForm.addEventListener("submit", handleEditProfileFormSubmit);
 newCardForm.addEventListener("submit", handleAddCardFormSubmit);
 modals.forEach((item) => {

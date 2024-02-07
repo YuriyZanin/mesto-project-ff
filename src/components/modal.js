@@ -5,7 +5,6 @@ export function openModal(element) {
 
 export function closeModal(element) {
   element.classList.remove("popup_is-opened");
-  document.forms["new-place"].reset();
   document.removeEventListener("keydown", closeModalByEscape);
 }
 
@@ -23,6 +22,6 @@ export function closeModalByOverlay(event) {
 }
 
 export function closeModalByButton(event) {
-  const openedCard = document.querySelector(".popup_is-opened");
+  const openedCard = event.target.closest(".popup_is-opened");
   closeModal(openedCard);
 }
