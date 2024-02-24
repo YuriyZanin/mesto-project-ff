@@ -23,7 +23,9 @@
           <div
             class="profile__image"
             style="background-image: url('<%=require(`./images/avatar.jpg`)%>')"
-          ></div>
+          >
+            <div class="overlay"></div>
+          </div>
           <div class="profile__info">
             <h1 class="profile__title">Жак-Ив Кусто</h1>
             <button class="profile__edit-button" type="button"></button>
@@ -131,7 +133,7 @@
         </div>
       </div>
       <div class="popup popup_type_delete-card">
-        <div class="popup__content">
+        <div class="popup__content popup__content_delete_card">
           <button type="button" class="popup__close"></button>
           <h3 class="popup__title">Вы уверены?</h3>
           <button type="submit" class="button popup__button">Да</button>

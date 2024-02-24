@@ -43,11 +43,12 @@ const newCardSaveButton = newCardForm.querySelector(".popup__button");
 const placeInput = newCardForm["place-name"];
 const linkInput = newCardForm.link;
 const deleteCardModal = document.querySelector(".popup_type_delete-card");
+const deleteCardButton = deleteCardModal.querySelector(".popup__button");
 const imageModal = document.querySelector(".popup_type_image");
 const popupImage = imageModal.querySelector(".popup__image");
 const popupImageCaption = imageModal.querySelector(".popup__caption");
 const createCardCallbacks = {
-  deleteFunction: handleDeleteCard,
+  deleteFunction: openModalDeleteCard,
   likeFunction: handleLikeCard,
   openImageFunction: openPopupImage,
 };
@@ -119,9 +120,12 @@ function openModalAddNewCard(event) {
   openModal(newCardModal);
 }
 
-// function openModalDeleteCard(event) {
-//   openModal(deleteCardModal);
-// }
+function openModalDeleteCard(cardId, event) {
+  openModal(deleteCardModal);
+  deleteCardButton.addEventListener("click", () => {
+    handleDeleteCard(cardId, event);
+  });
+}
 
 function handleEditProfileFormSubmit(event) {
   event.preventDefault();
@@ -183,9 +187,15 @@ function handleDeleteCard(cardId, event) {
   deleteCardById(cardId)
     .then((res) => {
       removeCard(event);
+      closeModal(deleteCardModal);
     })
     .catch((err) => {
       console.log(err);
+    })
+    .finally(() => {
+      deleteCardButton.removeEventListener("click", () => {
+        handleDeleteCard(cardId, event);
+      });
     });
 }
 
@@ -220,7 +230,6 @@ newCardButton.addEventListener("click", openModalAddNewCard);
 editProfileForm.addEventListener("submit", handleEditProfileFormSubmit);
 newCardForm.addEventListener("submit", handleAddCardFormSubmit);
 editAvatarForm.addEventListener("submit", handleAvatarEditFormSubmit);
-// deleteCardModal.addEventListener("submit", handleDeleteCard);
 modals.forEach((item) => {
   item.classList.add("popup_is-animated");
   item.addEventListener("click", closeModalByOverlay);
