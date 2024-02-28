@@ -36,20 +36,34 @@ function setEventListeners(formElement, validationConfig) {
 
   toggleButtonState(inputList, buttonElement, validationConfig);
 
+  formElement.addEventListener("reset", () => {
+    disableButton(buttonElement, validationConfig);
+  });
+
   inputList.forEach((inputElement) => {
     inputElement.addEventListener("input", () => {
-      toggleButtonState(inputList, buttonElement, validationConfig);
       checkInputValidity(formElement, inputElement, validationConfig);
+      toggleButtonState(inputList, buttonElement, validationConfig);
     });
   });
 }
 
 function toggleButtonState(inputList, buttonElement, validationConfig) {
   if (hasInvalidInput(inputList)) {
-    buttonElement.classList.add(validationConfig.inactiveButtonClass);
+    disableButton(buttonElement, validationConfig);
   } else {
-    buttonElement.classList.remove(validationConfig.inactiveButtonClass);
+    enableButton(buttonElement, validationConfig);
   }
+}
+
+function disableButton(submitButton, settings) {
+  submitButton.classList.add(settings.inactiveButtonClass);
+  submitButton.disabled = true;
+}
+
+function enableButton(submitButton, settings) {
+  submitButton.classList.remove(settings.inactiveButtonClass);
+  submitButton.disabled = false;
 }
 
 function hasInvalidInput(inputList) {

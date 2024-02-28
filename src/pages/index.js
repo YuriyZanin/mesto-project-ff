@@ -17,49 +17,43 @@ import {
   closeModalByOverlay,
   closeModalByButton,
 } from "../components/modal.js";
+import { handleSubmit } from "../components/utils.js";
 
-// @todo: Темплейт карточки
-const cardTmp = document.querySelector("#card-template").content;
+import {
+  cardTmp,
+  list,
+  profileImage,
+  profileTitle,
+  profileDescription,
+  editProfileModal,
+  editProfileButton,
+  editProfileForm,
+  nameInput,
+  jobInput,
+  editAvatarModal,
+  editAvatarForm,
+  avatarLink,
+  newCardModal,
+  newCardButton,
+  newCardForm,
+  placeInput,
+  linkInput,
+  deleteCardModal,
+  deleteCardButton,
+  imageModal,
+  popupImage,
+  popupImageCaption,
+  closeButtons,
+  modals,
+  validationConfig,
+} from "../components/constants.js";
 
-// @todo: DOM узлы
-const list = document.querySelector(".places__list");
-const profileImage = document.querySelector(".profile__image");
-const profileTitle = document.querySelector(".profile__title");
-const profileDescription = document.querySelector(".profile__description");
-const editProfileModal = document.querySelector(".popup_type_edit");
-const editProfileButton = document.querySelector(".profile__edit-button");
-const editProfileForm = document.forms["edit-profile"];
-const editProfileSaveButton = editProfileForm.querySelector(".popup__button");
-const nameInput = editProfileForm.name;
-const jobInput = editProfileForm.description;
-const editAvatarModal = document.querySelector(".popup_type_edit-avatar");
-const editAvatarForm = document.forms["edit-avatar"];
-const editAvatarSaveButton = editAvatarForm.querySelector(".popup__button");
-const avatarLink = editAvatarForm["avatar-link"];
-const newCardModal = document.querySelector(".popup_type_new-card");
-const newCardButton = document.querySelector(".profile__add-button");
-const newCardForm = document.forms["new-place"];
-const newCardSaveButton = newCardForm.querySelector(".popup__button");
-const placeInput = newCardForm["place-name"];
-const linkInput = newCardForm.link;
-const deleteCardModal = document.querySelector(".popup_type_delete-card");
-const deleteCardButton = deleteCardModal.querySelector(".popup__button");
-const imageModal = document.querySelector(".popup_type_image");
-const popupImage = imageModal.querySelector(".popup__image");
-const popupImageCaption = imageModal.querySelector(".popup__caption");
-const createCardCallbacks = {
+let createCardCallbacks = {
   deleteFunction: openModalDeleteCard,
   likeFunction: handleLikeCard,
   openImageFunction: openPopupImage,
 };
-const validationConfig = {
-  formSelector: ".popup__form",
-  inputSelector: ".popup__input",
-  submitButtonSelector: ".popup__button",
-  inactiveButtonClass: "popup__button_disabled",
-  inputErrorClass: "popup__input_type_error",
-  errorClass: "popup__error_visible",
-};
+let cardToDelete = {};
 let profileId;
 
 // @todo: Вывести карточки на страницу
@@ -77,20 +71,7 @@ Promise.all([getProfile(), getInitialCards()])
       list.append(createCard(cardData, createCardCallbacks));
     });
   })
-  .catch((err) => {
-    console.log(err); // выводим ошибку в консоль
-  });
-
-const closeButtons = document.querySelectorAll(".popup__close");
-const modals = document.querySelectorAll(".popup");
-
-function renderLoading(buttonElement, isLoading) {
-  if (isLoading) {
-    buttonElement.textContent = "Сохранение...";
-  } else {
-    buttonElement.textContent = "Сохранить";
-  }
-}
+  .catch(console.error);
 
 function openPopupImage(name, link) {
   popupImage.src = link;
@@ -121,82 +102,55 @@ function openModalAddNewCard(event) {
 }
 
 function openModalDeleteCard(cardId, event) {
+  cardToDelete = {id: cardId, event: event};
   openModal(deleteCardModal);
-  deleteCardButton.addEventListener("click", () => {
-    handleDeleteCard(cardId, event);
-  });
 }
 
 function handleEditProfileFormSubmit(event) {
-  event.preventDefault();
-
-  renderLoading(editProfileSaveButton, true);
-  updateProfile(nameInput.value, jobInput.value)
-    .then((res) => {
+  const request = () => {
+    return updateProfile(nameInput.value, jobInput.value).then((res) => {
       profileTitle.textContent = nameInput.value;
       profileDescription.textContent = jobInput.value;
       closeModal(editProfileModal);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      renderLoading(editProfileSaveButton, false);
     });
+  };
+
+  handleSubmit(request, event);
 }
 
 function handleAvatarEditFormSubmit(event) {
-  event.preventDefault();
-
-  renderLoading(editAvatarSaveButton, true);
-  updateProfileAvatar(avatarLink.value)
-    .then((res) => {
+  const request = () => {
+    return updateProfileAvatar(avatarLink.value).then((res) => {
       profileImage.style.backgroundImage = `url(${avatarLink.value})`;
       closeModal(editAvatarModal);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      renderLoading(editAvatarSaveButton, false);
     });
+  };
+
+  handleSubmit(request, event);
 }
 
 function handleAddCardFormSubmit(event) {
-  event.preventDefault();
-
-  renderLoading(newCardSaveButton, true);
-  postNewCard(placeInput.value, linkInput.value)
-    .then((res) => {
+  const request = () => {
+    return postNewCard(placeInput.value, linkInput.value).then((res) => {
       res.template = cardTmp;
       res.profileId = profileId;
       list.prepend(createCard(res, createCardCallbacks));
       closeModal(newCardModal);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      renderLoading(newCardSaveButton, false);
     });
+  };
+
+  handleSubmit(request, event);
 }
 
-function handleDeleteCard(cardId, event) {
+function handleDeleteCard(event) {
   event.preventDefault();
 
-  deleteCardById(cardId)
+  deleteCardById(cardToDelete.id)
     .then((res) => {
-      removeCard(event);
+      removeCard(cardToDelete.event);
       closeModal(deleteCardModal);
     })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      deleteCardButton.removeEventListener("click", () => {
-        handleDeleteCard(cardId, event);
-      });
-    });
+    .catch(console.error);
 }
 
 function handleLikeCard(cardId, event) {
@@ -207,17 +161,13 @@ function handleLikeCard(cardId, event) {
       .then((res) => {
         likeCard(event, res.likes.length);
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(console.error);
   } else {
     addLike(cardId)
       .then((res) => {
         likeCard(event, res.likes.length);
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(console.error);
   }
 }
 
@@ -227,6 +177,7 @@ enableValidation(validationConfig);
 editProfileButton.addEventListener("click", editProfile);
 profileImage.addEventListener("click", editAvatar);
 newCardButton.addEventListener("click", openModalAddNewCard);
+deleteCardButton.addEventListener("click", handleDeleteCard);
 editProfileForm.addEventListener("submit", handleEditProfileFormSubmit);
 newCardForm.addEventListener("submit", handleAddCardFormSubmit);
 editAvatarForm.addEventListener("submit", handleAvatarEditFormSubmit);
